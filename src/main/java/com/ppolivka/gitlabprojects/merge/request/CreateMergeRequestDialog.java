@@ -32,6 +32,7 @@ public class CreateMergeRequestDialog extends DialogWrapper {
     private JTextArea mergeDescription;
     private JButton diffButton;
     private JComboBox assigneeBox;
+    private JComboBox reviewerBox;
     private JCheckBox removeSourceBranch;
     private JCheckBox wip;
 
@@ -63,6 +64,13 @@ public class CreateMergeRequestDialog extends DialogWrapper {
         assigneeBox.setEditable(true);
         assigneeBox.addItemListener(searchBoxModel);
         assigneeBox.setBounds(140, 170, 180, 20);
+
+        SearchBoxModel reviewerSearchBoxModel = new SearchBoxModel(reviewerBox, mergeRequestWorker.getSearchableUsers());
+        reviewerBox.setModel(reviewerSearchBoxModel);
+        reviewerBox.setEditable(true);
+        reviewerBox.addItemListener(reviewerSearchBoxModel);
+        reviewerBox.setBounds(140, 200, 180, 20);
+
 
         currentBranch.setText(mergeRequestWorker.getGitLocalBranch().getName());
 
@@ -105,7 +113,7 @@ public class CreateMergeRequestDialog extends DialogWrapper {
             if(wip.isSelected()) {
                 title = "WIP:"+title;
             }
-            mergeRequestWorker.createMergeRequest(branch, getAssignee(), title, mergeDescription.getText(), removeSourceBranch.isSelected());
+            mergeRequestWorker.createMergeRequest(branch, getAssignee(),getReviewer(), title, mergeDescription.getText(), removeSourceBranch.isSelected());
             super.doOKAction();
         }
     }
@@ -129,6 +137,15 @@ public class CreateMergeRequestDialog extends DialogWrapper {
     @Nullable
     private GitlabUser getAssignee() {
         SearchableUser searchableUser = (SearchableUser) this.assigneeBox.getSelectedItem();
+        if(searchableUser != null) {
+            return searchableUser.getGitLabUser();
+        }
+        return null;
+    }
+
+    @Nullable
+    private GitlabUser getReviewer() {
+        SearchableUser searchableUser = (SearchableUser) this.reviewerBox.getSelectedItem();
         if(searchableUser != null) {
             return searchableUser.getGitLabUser();
         }

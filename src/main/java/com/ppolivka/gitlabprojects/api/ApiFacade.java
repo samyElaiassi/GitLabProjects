@@ -64,18 +64,22 @@ public class ApiFacade {
         api.createNote(mergeRequest, body);
     }
 
-    public GitlabMergeRequest createMergeRequest(GitlabProject project, GitlabUser assignee, String from, String to, String title, String description, boolean removeSourceBranch) throws IOException {
+    public GitlabMergeRequest createMergeRequest(GitlabProject project, GitlabUser assignee, GitlabUser reviewer, String from, String to, String title, String description, boolean removeSourceBranch) throws IOException {
         String tailUrl = "/projects/" + project.getId() + "/merge_requests";
         GitlabHTTPRequestor requestor = api.dispatch()
                 .with("source_branch", from)
                 .with("target_branch", to)
                 .with("title", title)
                 .with("description", description);
-        if(removeSourceBranch) {
+        if (removeSourceBranch) {
             requestor.with("remove_source_branch", true);
         }
         if (assignee != null) {
             requestor.with("assignee_id", assignee.getId());
+        }
+        if (reviewer != null) {
+            final Integer[] reviewers = {reviewer.getId()};
+            requestor.with("reviewer_ids", reviewers);
         }
 
         return requestor.to(tailUrl, GitlabMergeRequest.class);

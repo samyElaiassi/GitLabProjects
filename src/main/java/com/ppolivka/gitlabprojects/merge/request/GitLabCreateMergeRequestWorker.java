@@ -9,16 +9,15 @@ import com.intellij.openapi.vcs.VcsNotifier;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ThrowableConvertor;
 import com.intellij.util.containers.Convertor;
-import com.ppolivka.gitlabprojects.api.dto.ServerDto;
-import com.ppolivka.gitlabprojects.dto.GitlabServer;
-import com.ppolivka.gitlabprojects.util.GitLabUtil;
 import com.ppolivka.gitlabprojects.configuration.ProjectState;
 import com.ppolivka.gitlabprojects.configuration.SettingsState;
+import com.ppolivka.gitlabprojects.dto.GitlabServer;
 import com.ppolivka.gitlabprojects.exception.MergeRequestException;
 import com.ppolivka.gitlabprojects.merge.GitLabDiffViewWorker;
 import com.ppolivka.gitlabprojects.merge.GitLabMergeRequestWorker;
 import com.ppolivka.gitlabprojects.merge.info.BranchInfo;
 import com.ppolivka.gitlabprojects.merge.info.DiffInfo;
+import com.ppolivka.gitlabprojects.util.GitLabUtil;
 import git4idea.GitLocalBranch;
 import git4idea.commands.Git;
 import git4idea.commands.GitCommandResult;
@@ -65,12 +64,12 @@ public class GitLabCreateMergeRequestWorker implements GitLabMergeRequestWorker 
     private BranchInfo lastUsedBranch;
     private SearchableUsers searchableUsers;
 
-    public void createMergeRequest(final BranchInfo branch, final GitlabUser assignee, final String title, final String description, final boolean removeSourceBranch) {
+    public void createMergeRequest(final BranchInfo branch, final GitlabUser assignee, final GitlabUser reviewer, final String title, final String description, final boolean removeSourceBranch) {
         new Task.Backgroundable(project, "Creating merge request...") {
             @Override
             public void run(@NotNull ProgressIndicator indicator) {
 
-                if(title.startsWith("WIP:")) {
+                if (title.startsWith("WIP:")) {
                     projectState.setMergeAsWorkInProgress(true);
                 } else {
                     projectState.setMergeAsWorkInProgress(false);
@@ -88,7 +87,7 @@ public class GitLabCreateMergeRequestWorker implements GitLabMergeRequestWorker 
                 indicator.setText("Creating merge request...");
                 GitlabMergeRequest mergeRequest;
                 try {
-                    mergeRequest = settingsState.api(gitRepository).createMergeRequest(gitlabProject, assignee, gitLocalBranch.getName(), branch.getName(), title, description, removeSourceBranch);
+                    mergeRequest = settingsState.api(gitRepository).createMergeRequest(gitlabProject, assignee, reviewer, gitLocalBranch.getName(), branch.getName(), title, description, removeSourceBranch);
                 } catch (IOException e) {
                     showErrorDialog(project, "Cannot create Merge Request via GitLab REST API", CANNOT_CREATE_MERGE_REQUEST);
                     return;
